@@ -1,9 +1,20 @@
 from books_service import get_book_service, BookService
-from fastapi import FastAPI, Depends, HTTPException
 from schemas import BookCreate, BookResponse, BookUpdate
-
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ], 
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+)
 
 @app.get("/books/", response_model=list[BookResponse])
 async def get_books(
@@ -13,19 +24,6 @@ async def get_books(
 ):
     """Lấy danh sách tất cả sách"""
     return book_service.get_all_books(skip=skip, limit=limit)
-
-
-@app.get("/books/{book_id}", response_model=BookResponse)
-async def get_book(
-    book_id: int,
-    book_service: BookService = Depends(get_book_service)
-):
-    """Lấy thông tin một cuốn sách"""
-    book = book_service.get_book_by_id(book_id)
-    if not book:
-        raise HTTPException(status_code=404, detail="Không tìm thấy sách")
-    return book
-
 
 @app.post("/books/", response_model=BookResponse, status_code=201)
 async def create_book(
@@ -59,12 +57,3 @@ async def delete_book(
     if not success:
         raise HTTPException(status_code=404, detail="Không tìm thấy sách")
     return None
-
-
-@app.get("/books/search/", response_model=list[BookResponse])
-async def search_books(
-    keyword: str,
-    book_service: BookService = Depends(get_book_service)
-):
-    """Tìm kiếm sách theo từ khóa"""
-    return book_service.search_books(keyword)

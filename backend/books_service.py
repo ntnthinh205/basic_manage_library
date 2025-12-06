@@ -48,12 +48,7 @@ class BookService:
         self.db.commit()
         return True
     
-    def search_books(self, keyword: str) -> list[Book]:
-        return self.db.query(Book).filter(
-            (Book.title.contains(keyword)) | (Book.author.contains(keyword))
-        ).all()
-
-
+    
 def get_book_service(db: Session = Depends(get_db)) -> BookService:
     return BookService(db)
 
